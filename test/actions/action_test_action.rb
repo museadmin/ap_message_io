@@ -2,27 +2,27 @@ require 'state/actions/parent_action'
 
 # A test Action
 class ActionTestAction < ParentAction
-  @states = [
-    ['0', 'TEST_ACTION_LOADED', 'Test state been loaded into DB']
-  ]
-
-  def initialize(control)
-    if control[:run_state] == 'NORMAL'
+  def initialize(args, flag)
+    @flag = flag
+    if args[:run_mode] == 'NORMAL'
       @phase = 'ALL'
       @activation = 'ACT'
       @payload = 'NULL'
-      super(control)
+      super(args[:sqlite3_db], args[:logger])
     else
     recover_action(self)
     end
   end
 
-  def execute(control)
-    if active
-      puts 'Shutting down from ActionTestAction'
-      normal_shutdown(control)
-    end
-  ensure
-    update_action(self)
+  def states
+    [
+      ['0', 'TEST_ACTION_LOADED', 'Test state been loaded into DB']
+    ]
+  end
+
+  def execute
+    return unless active
+    puts 'Shutting down from ActionTestAction'
+    normal_shutdown
   end
 end
