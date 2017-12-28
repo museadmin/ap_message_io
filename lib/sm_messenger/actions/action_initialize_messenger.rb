@@ -27,7 +27,7 @@ class ActionInitializeMessenger < ParentAction
     create_message_table
     update_state('INIT_MESSAGING_LOADED', 1)
     @logger.info('Messenger dependencies created Successfully')
-    activate('ACTION_CHECK_FOR_INBOUND_MESSAGES')
+    activate(flag: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
     deactivate(@flag)
   end
 
@@ -37,7 +37,7 @@ class ActionInitializeMessenger < ParentAction
       "   sender CHAR NOT NULL, -- Hostname of sender \n" \
       "   action CHAR NOT NULL, -- The action to perform \n" \
       "   payload CHAR, -- Optional payload \n" \
-      "   ack CHAR NOT NULL, -- ack sent \n" \
+      "   ack INTEGER DEFAULT 0, -- ack sent \n" \
       "   date_time CHAR NOT NULL, -- Time sent \n" \
       "   processed INTEGER DEFAULT 0 \n" \
       ");".strip)

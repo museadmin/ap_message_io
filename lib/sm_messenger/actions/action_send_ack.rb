@@ -1,7 +1,7 @@
 require 'state/actions/parent_action'
 
-# Process inbound messages
-class ActionProcessInboundMessage < ParentAction
+# Send an ack for a message received
+class ActionSendAck < ParentAction
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
@@ -20,19 +20,12 @@ class ActionProcessInboundMessage < ParentAction
 
   def execute
     return unless active
-    process_messages
+
     deactivate(@flag)
   end
 
-  def process_messages
-    execute_sql_query(
-      'select * from messages where processed = 0;'
-    ).each do |msg|
-      execute_sql_statement(
-        'update messages set processed = \'1\' ' \
-        "where id = '#{msg[0]}';"
-      )
-      activate(payload: msg[3], flag: msg[2])
-    end
+  def process_outbound_ack
+    # TODO: Write to message file in outbound dir
+    # Do I need a required flag for acks....
   end
 end

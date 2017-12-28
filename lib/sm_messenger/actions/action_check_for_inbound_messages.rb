@@ -28,7 +28,7 @@ class ActionCheckForInboundMessages < ParentAction
       insert_message(flag_file)
       move_message_to_processed(flag_file)
       update_state('UNREAD_MESSAGES', 1)
-      activate('ACTION_PROCESS_INBOUND_MESSAGE')
+      activate(flag: 'ACTION_PROCESS_INBOUND_MESSAGE')
     end
   end
 
@@ -40,7 +40,7 @@ class ActionCheckForInboundMessages < ParentAction
       "(id, sender, action, payload, ack, date_time) \n" \
       "values\n" \
       "('#{msg['id']}', '#{msg['sender']}', '#{msg['action']}', \n" \
-      " '#{msg['payload']}', 'false', '#{msg['date_time']}');")
+      " '#{msg['payload']}', '0', '#{msg['date_time']}');")
   end
 
   def move_message_to_processed(flag_file)
