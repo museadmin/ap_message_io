@@ -7,7 +7,7 @@ class ActionInitializeHosts < ParentAction
     @flag = flag
     if args[:run_mode] == 'NORMAL'
       @phase = 'ALL'
-      @activation = 'SKIP'
+      @activation = 'ACT'
       @payload = 'NULL'
       super(args[:sqlite3_db], args[:logger])
     else
@@ -27,7 +27,7 @@ class ActionInitializeHosts < ParentAction
     populate_hosts_table
     update_state('INIT_HOSTS_LOADED', 1)
     deactivate(@flag)
-    normal_shutdown
+    # normal_shutdown
   end
 
   def create_hosts_table

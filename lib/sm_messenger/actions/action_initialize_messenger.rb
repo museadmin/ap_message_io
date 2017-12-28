@@ -2,7 +2,7 @@ require 'state/actions/parent_action'
 
 # Load the properties for the messenger into the control DB
 # and create the in and outbound messaging directories
-class ActionMessengerInitialize < ParentAction
+class ActionInitializeMessenger < ParentAction
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
@@ -17,17 +17,30 @@ class ActionMessengerInitialize < ParentAction
 
   def states
     [
-      ['0', 'INIT_PROPERTIES_LOADED', 'Properties have been loaded into DB']
+      ['0', 'INIT_MESSAGING_LOADED', 'Properties have been loaded into DB']
     ]
   end
 
   def execute
     return unless active
     create_dirs
-    update_state('INIT_PROPERTIES_LOADED', 1)
-    @logger.info('Messenger Properties Loaded Successfully')
-    activate('ACTION_INITIALIZE_HOSTS')
+    create_message_table
+    update_state('INIT_MESSAGING_LOADED', 1)
+    @logger.info('Messenger dependencies created Successfully')
+    activate('ACTION_CHECK_FOR_INBOUND_MESSAGES')
     deactivate(@flag)
+  end
+
+  def create_message_table
+    execute_sql_statement("CREATE TABLE messages\n" \
+      "(\n"  \
+      "   id CHAR PRIMARY KEY, \n" \
+      "   sender CHAR NOT NULL, -- Hostname of sender \n" \
+      "   action CHAR NOT NULL, -- The action to perform \n" \
+      "   payload CHAR, -- Optional payload \n" \
+      "   ack CHAR NOT NULL, -- ack sent \n" \
+      "   date_time CHAR NOT NULL -- Time sent \n" \
+      ");".strip)
   end
 
   def create_dirs
