@@ -18,8 +18,8 @@ class SmMessengerTest < Minitest::Test
   def test_inbound_message_load
     sm = StateMachine.new(user_actions_dir: ACTIONS_DIR)
     sm.insert_property(
-        'host_file',
-        File.absolute_path('./lib/sm_messenger/resources/hosts.json')
+      'host_file',
+      File.absolute_path('./lib/sm_messenger/resources/hosts.json')
     )
     sm.load_actions
     Thread.new do
@@ -27,7 +27,7 @@ class SmMessengerTest < Minitest::Test
     end
 
     to = 10
-    while sm.query_run_phase_state != 'RUNNING' do
+    while sm.query_run_phase_state != 'RUNNING'
       sleep 1
       raise 'State machine failed to run' if (to -= 1) < 0
     end
@@ -35,7 +35,7 @@ class SmMessengerTest < Minitest::Test
     write_message_file(sm.query_property('in_pending'))
 
     to = 10
-    while sm.query_run_phase_state == 'RUNNING' do
+    while sm.query_run_phase_state == 'RUNNING'
       sleep 1
       raise 'State machine failed to stop' if (to -= 1) < 0
     end
@@ -43,12 +43,15 @@ class SmMessengerTest < Minitest::Test
     assert(Dir[File.join(sm.query_property('in_processed'), '**', '*')]
                 .count { |file| File.file?(file) } == 2)
     assert(sm.execute_sql_query('select count(*) id from messages;')[0][0] == 1)
+    assert(sm.execute_sql_query('select payload from state_machine' \
+      ' where flag = \'SYS_NORMAL_SHUTDOWN\'')[0][0] ==
+      '{ "test": "value" }')
   end
 
   def write_message_file(in_pending)
     builder = MessageBuilder.new
     builder.sender = 'localhost'
-    builder.action = 'SHUTDOWN'
+    builder.action = 'SYS_NORMAL_SHUTDOWN'
     builder.payload = '{ "test": "value" }'
     js = builder.build
 

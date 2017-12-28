@@ -32,14 +32,14 @@ class ActionInitializeMessenger < ParentAction
   end
 
   def create_message_table
-    execute_sql_statement("CREATE TABLE messages\n" \
-      "(\n"  \
-      "   id CHAR PRIMARY KEY, \n" \
+    execute_sql_statement('CREATE TABLE messages (' \
+      '   id CHAR PRIMARY KEY, ' \
       "   sender CHAR NOT NULL, -- Hostname of sender \n" \
       "   action CHAR NOT NULL, -- The action to perform \n" \
       "   payload CHAR, -- Optional payload \n" \
       "   ack CHAR NOT NULL, -- ack sent \n" \
-      "   date_time CHAR NOT NULL -- Time sent \n" \
+      "   date_time CHAR NOT NULL, -- Time sent \n" \
+      "   processed INTEGER DEFAULT 0 \n" \
       ");".strip)
   end
 

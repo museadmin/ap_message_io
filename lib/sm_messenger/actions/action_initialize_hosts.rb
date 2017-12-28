@@ -27,7 +27,6 @@ class ActionInitializeHosts < ParentAction
     populate_hosts_table
     update_state('INIT_HOSTS_LOADED', 1)
     deactivate(@flag)
-    # normal_shutdown
   end
 
   def create_hosts_table

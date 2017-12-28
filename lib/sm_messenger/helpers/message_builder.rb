@@ -1,21 +1,22 @@
 require 'json'
 
+# Build a message file
 class MessageBuilder
   def initialize
     @message = {
-        id: nil,
-        sender: nil,
-        action: nil,
-        payload: nil,
-        ack: true,
-        date_time: nil
+      id: nil,
+      sender: nil,
+      action: nil,
+      payload: nil,
+      ack: true,
+      date_time: nil
     }
   end
 
   def build
     epoch = (Time.now.to_f * 1000).to_i
     @message[:id] = "#{@message[:sender]}_#{epoch}"
-    @message[:date_time] = Time.at(epoch/1000)
+    @message[:date_time] = Time.at(epoch / 1000)
     JSON.generate(@message)
   end
 
@@ -37,7 +38,7 @@ class MessageBuilder
 
   def ack=(ack)
     raise 'Invalid ack flag. true or false expected' unless
-      ack == true || ack == false
+      [true, false].include? ack
     @message[:ack] = ack
   end
 end

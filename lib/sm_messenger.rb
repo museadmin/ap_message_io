@@ -17,8 +17,8 @@ module TestModule
 end
 
 # Main messenger class
-class MessageManager
-  def initialize(args)
-    puts 'in init'
-  end
-end
+# class MessageManager
+#   def initialize(args)
+#     puts 'in init'
+#   end
+# end
