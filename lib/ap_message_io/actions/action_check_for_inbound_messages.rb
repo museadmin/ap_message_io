@@ -46,7 +46,9 @@ class ActionCheckForInboundMessages < ParentAction
   def move_message_to_processed(flag_file)
     # Move the data file first
     source = "#{File.dirname(flag_file)}/#{File.basename(flag_file, '.*')}"
-    target = "#{query_property('in_processed')}/#{File.basename(flag_file, '.*')}"
+    target = "#{query_property(
+      'in_processed'
+    )}/#{File.basename(flag_file, '.*')}"
     FileUtils.move source, target
     # Then the semaphore
     source = flag_file
