@@ -10,18 +10,18 @@ class SmMessengerTest < Minitest::Test
   end
 
   def test_it_loads_user_modules
-    sm = StateMachine.new(user_actions_dir: ACTIONS_DIR)
+    sm = StateMachine.new
     sm.include_module('TestModule')
     assert_equal(sm.test_method, 'Test String')
   end
 
   def test_inbound_message_load
-    sm = StateMachine.new(user_actions_dir: ACTIONS_DIR)
+    sm = StateMachine.new
     sm.insert_property(
       'host_file',
       File.absolute_path('./lib/sm_messenger/resources/hosts.json')
     )
-    sm.load_actions
+    sm.import_action_pack(ACTIONS_DIR)
     Thread.new do
       sm.execute
     end
