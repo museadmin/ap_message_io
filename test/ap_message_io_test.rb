@@ -23,7 +23,66 @@ class ApMessageIoTest < Minitest::Test
   # Load our actions and then drop in a message
   # for the SYS_NORMAL_SHUTDOWN action. Fail if we timeout
   # waiting for shutdown.
-  def test_inbound_message_load
+  def test_message_execution
+    sm = StateMachine.new
+    ap = ApMessageIo.new
+
+    # Export our actions to the state machine
+    ap.export_action_pack(sm)
+    Thread.new do
+      sm.execute
+    end
+
+    # Startup, write a shutdown message and wait for exit
+    wait_for_run_phase('RUNNING', sm, 10)
+    write_message_file(sm.query_property('in_pending'))
+    wait_for_run_phase('SHUTDOWN', sm, 10)
+  end
+
+  def test_message_payload
+    sm = StateMachine.new
+    ap = ApMessageIo.new
+
+    # Export our actions to the state machine
+    ap.export_action_pack(sm)
+    Thread.new do
+      sm.execute
+    end
+
+    # Startup, write a shutdown message and wait for exit
+    assert(wait_for_run_phase('RUNNING', sm, 10))
+    write_message_file(sm.query_property('in_pending'))
+    assert(wait_for_run_phase('SHUTDOWN', sm, 10))
+
+    # Assert we set the unused payload from the message file
+    assert(sm.execute_sql_query('select payload from state_machine' \
+      ' where flag = \'SYS_NORMAL_SHUTDOWN\'')[0][0] ==
+               '{ "test": "value" }')
+  end
+
+  def test_messaging_table
+    sm = StateMachine.new
+    ap = ApMessageIo.new
+
+    # Export our actions to the state machine
+    ap.export_action_pack(sm)
+    Thread.new do
+      sm.execute
+    end
+
+    # Startup, write a shutdown message and wait for exit
+    wait_for_run_phase('RUNNING', sm, 10)
+    write_message_file(sm.query_property('in_pending'))
+    wait_for_run_phase('SHUTDOWN', sm, 10)
+
+    # Assert we have one received message in the dB messages table
+    # and an ack
+    assert(sm.execute_sql_query(
+        'select count(*) id from messages;')[0][0] == 2
+    )
+  end
+
+  def test_message_file_handling
     sm = StateMachine.new
     ap = ApMessageIo.new
 
@@ -40,17 +99,11 @@ class ApMessageIoTest < Minitest::Test
 
     # Assert message files were move to processed
     assert(Dir[File.join(sm.query_property('in_processed'), '**', '*')]
-                .count { |file| File.file?(file) } == 2)
+               .count { |file| File.file?(file) } == 2)
 
-    # Assert we have one message in the dB messages table
-    assert(sm.execute_sql_query(
-        'select count(*) id from messages;')[0][0] == 1
-    )
-
-    # Assert we passed in the unused payload from the message file
-    assert(sm.execute_sql_query('select payload from state_machine' \
-      ' where flag = \'SYS_NORMAL_SHUTDOWN\'')[0][0] ==
-      '{ "test": "value" }')
+    # Assert ack file is present in outbound dir
+    assert(Dir[File.join(sm.query_property('out_pending'), '**', '*')]
+               .count { |file| File.file?(file) } == 2)
   end
 
   # Wait for a change of run phase in the state machine.
@@ -61,8 +114,7 @@ class ApMessageIoTest < Minitest::Test
   def wait_for_run_phase(phase, state_machine, time_out)
     EM.run do
       t = EM::Timer.new(time_out) do
-        raise 'Timeout waiting for change of run phase to (' \
-        + phase + ')'
+        return false
       end
 
       p = EM::PeriodicTimer.new(1) do
@@ -70,12 +122,13 @@ class ApMessageIoTest < Minitest::Test
           p.cancel
           t.cancel
           EM.stop
-          return
+          return true
         end
       end
     end
   end
 
+  # Drop a message into the queue with a shutdown flag
   def write_message_file(in_pending)
     builder = MessageBuilder.new
     builder.sender = 'localhost'

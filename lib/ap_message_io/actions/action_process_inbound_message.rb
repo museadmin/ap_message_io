@@ -25,6 +25,7 @@ class ActionProcessInboundMessage < ParentAction
     process_messages
     update_state('UNREAD_MESSAGES', 0)
     deactivate(@flag)
+    activate(flag: 'ACTION_SEND_ACK')
   end
 
   private

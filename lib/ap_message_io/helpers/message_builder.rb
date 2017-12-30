@@ -27,6 +27,26 @@ class MessageBuilder
     @message[:id]
   end
 
+  # Return the sender
+  def sender
+    @message[:sender]
+  end
+
+  # Return the action
+  def action
+    @message[:action]
+  end
+
+  # Return the payload
+  def payload
+    @message[:payload]
+  end
+
+  # Return the time stamp
+  def date_time
+    @message[:date_time]
+  end
+
   # Set sender field to Hostname of sender
   # @param hostname [String] Hostname of sender
   def sender=(hostname)
