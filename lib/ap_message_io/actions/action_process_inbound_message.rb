@@ -2,6 +2,11 @@ require 'state/actions/parent_action'
 
 # Process inbound messages
 class ActionProcessInboundMessage < ParentAction
+  # Instantiate the action
+  # @param args [Hash] Required parameters for the action
+  # run_mode [Symbol] Either NORMAL or RECOVER
+  # sqlite3_db [Symbol] Path to the main control DB
+  # logger [Symbol] The logger object for logging
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
@@ -14,16 +19,23 @@ class ActionProcessInboundMessage < ParentAction
     end
   end
 
+  # Do the work for this action
+  def execute
+    return unless active
+    process_messages
+    update_state('UNREAD_MESSAGES', 0)
+    deactivate(@flag)
+  end
+
+  private
+
+  # States for this action
   def states
     []
   end
 
-  def execute
-    return unless active
-    process_messages
-    deactivate(@flag)
-  end
-
+  # Find each unprocessed message in the DB and process it
+  # Setting each one's action and optional payload
   def process_messages
     execute_sql_query(
       'select * from messages where processed = 0;'

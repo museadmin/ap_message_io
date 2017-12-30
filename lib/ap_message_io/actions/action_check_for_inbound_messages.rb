@@ -3,6 +3,11 @@ require 'fileutils'
 
 # Check the inbound directory for new messages
 class ActionCheckForInboundMessages < ParentAction
+  # Instantiate the action, args hash contains:
+  # run_mode [Symbol] Either NORMAL or RECOVER,
+  # sqlite3_db [Symbol] Path to the main control DB,
+  # logger [Symbol] The logger object for logging.
+  # @param args [Hash] Required parameters for the action
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
@@ -15,12 +20,7 @@ class ActionCheckForInboundMessages < ParentAction
     end
   end
 
-  def states
-    [
-      ['0', 'UNREAD_MESSAGES', 'New messages found in inbound dir']
-    ]
-  end
-
+  # Do the work for this action
   def execute
     return unless active
     in_pending = query_property('in_pending')
@@ -32,6 +32,17 @@ class ActionCheckForInboundMessages < ParentAction
     end
   end
 
+  private
+
+  # States for this action
+  def states
+    [
+      ['0', 'UNREAD_MESSAGES', 'New messages found in inbound dir']
+    ]
+  end
+
+  # Found a message so insert it into the DB
+  # @param flag_file [String] Path to the semaphore file
   def insert_message(flag_file)
     msg_file = "#{File.dirname(flag_file)}/#{File.basename(flag_file, '.*')}"
     msg = JSON.parse(File.read(msg_file))
@@ -43,6 +54,9 @@ class ActionCheckForInboundMessages < ParentAction
       " '#{msg['payload']}', '0', '#{msg['date_time']}');")
   end
 
+  # After the message has been inserted into the DB
+  # move it to processed dir
+  # @param flag_file [String] Path to the semaphore file
   def move_message_to_processed(flag_file)
     # Move the data file first
     source = "#{File.dirname(flag_file)}/#{File.basename(flag_file, '.*')}"

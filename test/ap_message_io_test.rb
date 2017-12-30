@@ -1,51 +1,79 @@
 require 'test_helper'
 require 'ap_message_io/helpers/message_builder'
 
+require 'eventmachine'
+
+# Minitest unit tests for action pack
 class ApMessageIoTest < Minitest::Test
-  # ACTIONS_DIR = './test/actions'.freeze
+  # Relative path to our actions
   ACTIONS_DIR = './lib/ap_message_io/actions'.freeze
 
+  # Test we remembered to include a gem version
   def test_it_has_a_version_number
     refute_nil ::ApMessageIo::VERSION
   end
 
+  # Confirm that SM can load one of our modules
   def test_it_loads_user_modules
     sm = StateMachine.new
     sm.include_module('TestModule')
     assert_equal(sm.test_method, 'Test String')
   end
 
+  # Load our actions and then drop in a message
+  # for the SYS_NORMAL_SHUTDOWN action. Fail if we timeout
+  # waiting for shutdown.
   def test_inbound_message_load
     sm = StateMachine.new
-    sm.insert_property(
-      'host_file',
-      File.absolute_path('./lib/ap_message_io/resources/hosts.json')
-    )
-    sm.import_action_pack(ACTIONS_DIR)
+    ap = ApMessageIo.new
+
+    # Export our actions to the state machine
+    ap.export_action_pack(sm)
     Thread.new do
       sm.execute
     end
 
-    to = 10
-    while sm.query_run_phase_state != 'RUNNING'
-      sleep 1
-      raise 'State machine failed to run' if (to -= 1) < 0
-    end
-
+    # Startup, write a shutdown message and wait for exit
+    wait_for_run_phase('RUNNING', sm, 10)
     write_message_file(sm.query_property('in_pending'))
+    wait_for_run_phase('SHUTDOWN', sm, 10)
 
-    to = 10
-    while sm.query_run_phase_state == 'RUNNING'
-      sleep 1
-      raise 'State machine failed to stop' if (to -= 1) < 0
-    end
-
+    # Assert message files were move to processed
     assert(Dir[File.join(sm.query_property('in_processed'), '**', '*')]
                 .count { |file| File.file?(file) } == 2)
-    assert(sm.execute_sql_query('select count(*) id from messages;')[0][0] == 1)
+
+    # Assert we have one message in the dB messages table
+    assert(sm.execute_sql_query(
+        'select count(*) id from messages;')[0][0] == 1
+    )
+
+    # Assert we passed in the unused payload from the message file
     assert(sm.execute_sql_query('select payload from state_machine' \
       ' where flag = \'SYS_NORMAL_SHUTDOWN\'')[0][0] ==
       '{ "test": "value" }')
+  end
+
+  # Wait for a change of run phase in the state machine.
+  # Raise error if timeout.
+  # @param phase [String] Name of phase to wait for
+  # @param state_machine [StateMachine] An instance of a state machine
+  # @param time_out [FixedNum] The time out period
+  def wait_for_run_phase(phase, state_machine, time_out)
+    EM.run do
+      t = EM::Timer.new(time_out) do
+        raise 'Timeout waiting for change of run phase to (' \
+        + phase + ')'
+      end
+
+      p = EM::PeriodicTimer.new(1) do
+        if state_machine.query_run_phase_state == phase
+          p.cancel
+          t.cancel
+          EM.stop
+          return
+        end
+      end
+    end
   end
 
   def write_message_file(in_pending)

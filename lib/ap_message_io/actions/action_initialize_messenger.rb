@@ -3,6 +3,11 @@ require 'state/actions/parent_action'
 # Load the properties for the messenger into the control DB
 # and create the in and outbound messaging directories
 class ActionInitializeMessenger < ParentAction
+  # Instantiate the action
+  # @param args [Hash] Required parameters for the action
+  # run_mode [Symbol] Either NORMAL or RECOVER
+  # sqlite3_db [Symbol] Path to the main control DB
+  # logger [Symbol] The logger object for logging
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
@@ -15,12 +20,7 @@ class ActionInitializeMessenger < ParentAction
     end
   end
 
-  def states
-    [
-      ['0', 'INIT_MESSAGING_LOADED', 'Properties have been loaded into DB']
-    ]
-  end
-
+  # Do the work for this action
   def execute
     return unless active
     create_dirs
@@ -31,6 +31,16 @@ class ActionInitializeMessenger < ParentAction
     deactivate(@flag)
   end
 
+  private
+
+  # States for this action
+  def states
+    [
+      ['0', 'INIT_MESSAGING_LOADED', 'Properties have been loaded into DB']
+    ]
+  end
+
+  # Create the messages table in the DB
   def create_message_table
     execute_sql_statement('CREATE TABLE messages (' \
       '   id CHAR PRIMARY KEY, ' \
@@ -43,6 +53,7 @@ class ActionInitializeMessenger < ParentAction
       ");".strip)
   end
 
+  # Create the inbound and outbound dirs under the run dir
   def create_dirs
     run_dir = query_property('run_dir')
     raise 'Run directory not found' unless Dir.exist?(run_dir)
@@ -54,6 +65,10 @@ class ActionInitializeMessenger < ParentAction
     FileUtils.chmod_R('u=wrx,go=r', run_dir)
   end
 
+  # Physically create a directory and record its path
+  # in DB properties table
+  # @param path [String] Path to directory
+  # @param property [String] Name for property
   def create_dir(path, property)
     FileUtils.mkdir_p(path)
     insert_property(property, path)

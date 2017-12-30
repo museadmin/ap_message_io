@@ -1,0 +1,76 @@
+--------------------------
+Geminabox
+--------------------------
+Runs on:
+
+http://localhost:9292
+
+Push to server:
+
+gem inabox pkg/ap_message_io-0.1.0.gem
+
+--------------------------
+Rake
+--------------------------
+Local install, and build to /pkg:
+
+bundle exec rake install
+
+Release to Ruby Gems:
+
+bundle exec rake release
+
+--------------------------
+Gem build
+--------------------------
+gem build ap_message_io.gemspec
+
+--------------------------
+--------------------------
+
+Dynamic Inclusion of module GEMS, from https://gist.github.com/adamjmurray/3154437
+
+1 - Add gem to GEMFILE in state machine project
+2 - Scan for local GEMS and list all GEMS beginning sm_
+3 - Install them
+
+Example code:
+
+# Environment, set GEM_HOME & GEM_PATH. For example, we can launch JRuby like this:
+# GEM_HOME=/Users/amurray/tmp/gems/ GEM_PATH=/Users/amurray/tmp/gems java -jar ~/Downloads/jruby-complete-1.7.0.preview1.jar -S irb
+
+# =====================
+# LISTING gems
+puts Gem::Specification.find_all.to_s
+puts Gem::Specification.find_all.map{|spec| "#{spec.name} (#{spec.version})" }
+
+# =====================
+# USING (a specific version of) gems
+gem 'rake', '0.9.0'
+require 'rake'
+
+# ====================
+# INSTALLING gems
+require 'rubygems/commands/install_command'
+cmd = Gem::Commands::InstallCommand.new
+cmd.handle_options ["--no-ri", "--no-rdoc", 'rake', '--version', '0.9']  # or omit --version and the following option to install the latest
+
+begin
+  cmd.execute
+rescue Gem::SystemExitException => e
+  puts "DONE: #{e.exit_code}"
+end
+
+# =====================
+# UNINSTALLING gems
+require 'rubygems/commands/uninstall_command'
+cmd = Gem::Commands::UninstallCommand.new
+cmd.handle_options ['-x', '-I', 'jasmine']  # -x removes executables without prompting. -I ignores dependecies. Can also uninstall specific versions...
+cmd.execute
+
+# =====================
+# UPDATING a gem to latest version
+require 'rubygems/commands/update_command'
+cmd = Gem::Commands::UpdateCommand.new
+cmd.handle_options ['--no-rdoc', '--no-ri', 'rake']
+cmd.execute

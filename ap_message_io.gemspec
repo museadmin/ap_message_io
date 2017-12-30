@@ -28,13 +28,16 @@ Gem::Specification.new do |spec|
   spec.files = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
   end
+
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'bundler', '~> 1.16'
+  spec.add_runtime_dependency 'eventmachine', '~> 1.2.5'
   spec.add_runtime_dependency 'json', '~> 2.0.4'
   spec.add_runtime_dependency 'minitest', '~> 5.0'
   spec.add_runtime_dependency 'rake', '~> 0'
-  spec.add_runtime_dependency 'state-machine', '~> 0.1.3'
+  spec.add_runtime_dependency 'state-machine', '~> 0.1.4'
+  spec.add_runtime_dependency 'yard', '~> 0.9.12'
 end
