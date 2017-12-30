@@ -1,6 +1,5 @@
 require 'test_helper'
 require 'ap_message_io/helpers/message_builder'
-
 require 'eventmachine'
 
 # Minitest unit tests for action pack
@@ -29,9 +28,7 @@ class ApMessageIoTest < Minitest::Test
 
     # Export our actions to the state machine
     ap.export_action_pack(sm)
-    Thread.new do
-      sm.execute
-    end
+    sm.execute
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
@@ -45,9 +42,7 @@ class ApMessageIoTest < Minitest::Test
 
     # Export our actions to the state machine
     ap.export_action_pack(sm)
-    Thread.new do
-      sm.execute
-    end
+    sm.execute
 
     # Startup, write a shutdown message and wait for exit
     assert(wait_for_run_phase('RUNNING', sm, 10))
@@ -66,9 +61,7 @@ class ApMessageIoTest < Minitest::Test
 
     # Export our actions to the state machine
     ap.export_action_pack(sm)
-    Thread.new do
-      sm.execute
-    end
+    sm.execute
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
@@ -88,9 +81,7 @@ class ApMessageIoTest < Minitest::Test
 
     # Export our actions to the state machine
     ap.export_action_pack(sm)
-    Thread.new do
-      sm.execute
-    end
+    sm.execute
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
@@ -114,6 +105,7 @@ class ApMessageIoTest < Minitest::Test
   def wait_for_run_phase(phase, state_machine, time_out)
     EM.run do
       t = EM::Timer.new(time_out) do
+        EM.stop
         return false
       end
 

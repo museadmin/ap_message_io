@@ -48,10 +48,10 @@ class ActionCheckForInboundMessages < ParentAction
     msg = JSON.parse(File.read(msg_file))
 
     execute_sql_statement("insert into messages \n" \
-      "(id, sender, action, payload, ack, date_time) \n" \
+      "(id, sender, action, payload, ack, direction, date_time) \n" \
       "values\n" \
       "('#{msg['id']}', '#{msg['sender']}', '#{msg['action']}', \n" \
-      " '#{msg['payload']}', '0', '#{msg['date_time']}');")
+      " '#{msg['payload']}', '0', 'in', '#{msg['date_time']}');")
   end
 
   # After the message has been inserted into the DB

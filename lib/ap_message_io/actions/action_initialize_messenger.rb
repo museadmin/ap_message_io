@@ -49,6 +49,7 @@ class ActionInitializeMessenger < ParentAction
       "   payload CHAR, -- Optional payload \n" \
       "   ack INTEGER DEFAULT 0, -- ack sent \n" \
       "   date_time CHAR NOT NULL, -- Time sent \n" \
+      "   direction CHAR DEFAULT 'in', -- In or out bound msg \n" \
       "   processed INTEGER DEFAULT 0 \n" \
       ");".strip)
   end

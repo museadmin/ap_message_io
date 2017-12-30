@@ -15,9 +15,9 @@ class MessageBuilder
   end
 
   # Build the message as a json string
-  def build
+  def build(id = nil)
     epoch = (Time.now.to_f * 1000).to_i
-    @message[:id] = "#{@message[:sender]}_#{epoch}"
+    id.nil? ? @message[:id] = "#{@message[:sender]}_#{epoch}" : @message[:id] = id
     @message[:date_time] = Time.at(epoch / 1000)
     JSON.generate(@message)
   end

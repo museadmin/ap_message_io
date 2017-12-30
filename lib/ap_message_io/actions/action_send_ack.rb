@@ -60,10 +60,10 @@ class ActionSendAck < ParentAction
 
   def insert_message_to_db(builder)
     sql = "insert into messages \n" \
-      "(id, sender, action, payload, ack, date_time) \n" \
+      "(id, sender, action, payload, ack, direction, date_time) \n" \
       "values\n" \
       "('#{builder.id}', '#{builder.sender}', '#{builder.action}', \n" \
-      " '#{builder.payload}', '0', '#{builder.date_time}');"
+      " '#{builder.payload}', '0', 'out', '#{builder.date_time}');"
 
     execute_sql_statement(sql)
   end
