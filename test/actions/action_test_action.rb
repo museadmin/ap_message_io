@@ -10,10 +10,10 @@ class ActionTestAction < ParentAction
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
-      @phase = 'ALL'
-      @activation = 'ACT'
+      @phase = 'RUNNING'
+      @activation = 'SKIP'
       @payload = 'NULL'
-      super(args[:sqlite3_db], args[:logger])
+      super(args[:logger])
     else
     recover_action(self)
     end
@@ -22,8 +22,16 @@ class ActionTestAction < ParentAction
   # Do the work for this action
   def execute
     return unless active
-    puts 'Shutting down from ActionTestAction'
-    normal_shutdown
+    builder = MessageBuilder.new
+    builder.sender = `hostname`.strip
+    builder.action = 'THIRD_PARTY_ACTION'
+    builder.payload = '{ "test": "value" }'
+    builder.direction = 'out'
+    builder.processed = 0
+    builder.build
+
+    inject_outbound_message(builder)
+    deactivate(@flag)
   end
 
   private
@@ -33,5 +41,16 @@ class ActionTestAction < ParentAction
     [
       ['0', 'TEST_ACTION_LOADED', 'Test state been loaded into DB']
     ]
+  end
+
+  # Inject an outbound message into the DB
+  def inject_outbound_message(builder)
+    sql = "insert into messages \n" \
+      "(id, sender, action, payload, ack, direction, date_time) \n" \
+      "values\n" \
+      "('#{builder.id}', '#{builder.sender}', '#{builder.action}', \n" \
+      " '#{builder.payload}', '0', 'out', '#{builder.date_time}');"
+
+    execute_sql_statement(sql)
   end
 end

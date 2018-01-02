@@ -13,7 +13,7 @@ class ActionProcessInboundMessage < ParentAction
       @phase = 'RUNNING'
       @activation = 'SKIP'
       @payload = 'NULL'
-      super(args[:sqlite3_db], args[:logger])
+      super(args[:logger])
     else
       recover_action(self)
     end
@@ -39,7 +39,7 @@ class ActionProcessInboundMessage < ParentAction
   # Setting each one's action and optional payload
   def process_messages
     execute_sql_query(
-      'select * from messages where processed = 0;'
+      'select * from messages where processed = 0 and direction = \'in\';'
     ).each do |msg|
       execute_sql_statement(
         'update messages set processed = \'1\' ' \

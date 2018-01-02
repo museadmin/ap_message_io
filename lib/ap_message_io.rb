@@ -9,6 +9,12 @@ class ApMessageIo
     path = File.expand_path('../', __FILE__)
     state_machine.import_action_pack(path + '/ap_message_io/actions')
   end
+
+  # Export the actions from this pack into a state machine
+  def export_test_action_pack(state_machine, dir)
+    path = File.expand_path('../', __FILE__)
+    state_machine.import_action_pack(path + "/../#{dir}")
+  end
 end
 
 # Module for unit test

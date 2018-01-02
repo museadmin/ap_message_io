@@ -13,7 +13,7 @@ class ActionSendAck < ParentAction
       @phase = 'RUNNING'
       @activation = 'SKIP'
       @payload = 'NULL'
-      super(args[:sqlite3_db], args[:logger])
+      super(args[:logger])
     else
       recover_action(self)
     end
@@ -35,26 +35,28 @@ class ActionSendAck < ParentAction
 
   def process_outbound_ack
     execute_sql_query(
-        'select id from messages where processed = 1 and ack = 0'
+        'select id from messages where processed = 1 ' \
+        'and ack = 0 and direction = \'in\';'
     ).each do |message|
       # Create the ack
       builder = MessageBuilder.new()
       builder.sender = `hostname`.strip
       builder.action = 'ACK'
       builder.payload = message[0]
+      builder.direction = 'out'
       json = builder.build
       # Write it to the outbound directory
       write_ack_to_file(json, builder.id)
       # Insert a record of it into the db messages table
       insert_message_to_db(builder)
       # Update the ack field in the original message
-      update_original_message(builder)
+      update_original_message(message[0])
     end
   end
 
-  def update_original_message(builder)
+  def update_original_message(id)
     execute_sql_statement(
-        "update messages set ack = 1 where id = '#{builder.id}'"
+        "update messages set ack = 1 where id = '#{id}'"
     )
   end
 

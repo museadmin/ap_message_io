@@ -9,7 +9,8 @@ class MessageBuilder
       sender: nil,
       action: nil,
       payload: nil,
-      ack: true,
+      # ack: true,
+      direction: 'in',
       date_time: nil
     }
   end
@@ -42,9 +43,19 @@ class MessageBuilder
     @message[:payload]
   end
 
+  # Return the direction
+  def direction
+    @message[:direction]
+  end
+
   # Return the time stamp
   def date_time
     @message[:date_time]
+  end
+
+  # Return processed
+  def processed
+    @message[:processed]
   end
 
   # Set sender field to Hostname of sender
@@ -64,10 +75,24 @@ class MessageBuilder
     @message[:payload] = payload
   end
 
+  # Return the direction
+  def direction=(direction)
+    @message[:direction] = direction
+  end
+
   # Ack is set true in recipient when ack is sent
   def ack=(ack)
     raise 'Invalid ack flag. true or false expected' unless
       [true, false].include? ack
     @message[:ack] = ack
+  end
+
+  # Set the processed flag
+  def processed=(value)
+    @message[:processed] = value
+  end
+
+  def date_time=(date_time)
+    @message[:date_time] = date_time
   end
 end
