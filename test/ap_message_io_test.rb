@@ -12,7 +12,7 @@ class ApMessageIoTest < MiniTest::Test
   # Disable this if debugging a failure...
   def teardown
     return unless File.directory?(RESULTS_ROOT)
-    # FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
+    FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
   end
 
   # Test we remembered to include a gem version

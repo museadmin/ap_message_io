@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'A messaging module for the state-machine gem'
   spec.description   = 'A messaging module for the state-machine gem'
-  spec.homepage      = 'https://github.com/museadmin/sm-messenger'
+  spec.homepage      = 'https://github.com/museadmin/ap-message-io'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org.

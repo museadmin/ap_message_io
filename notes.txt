@@ -7,18 +7,8 @@ http://localhost:9292
 
 Push to server:
 
-gem inabox pkg/ap_message_io-0.1.0.gem
-
---------------------------
-Rake
---------------------------
-Local install, and build to /pkg:
-
 bundle exec rake install
-
-Release to Ruby Gems:
-
-bundle exec rake release
+gem inabox -o pkg/ap_message_io-0.1.0.gem
 
 --------------------------
 Gem build
