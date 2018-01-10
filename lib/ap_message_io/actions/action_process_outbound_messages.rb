@@ -4,7 +4,6 @@ class ActionProcessOutboundMessages < ParentAction
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
   # run_mode [Symbol] Either NORMAL or RECOVER
-  # sqlite3_db [Symbol] Path to the main control DB
   # logger [Symbol] The logger object for logging
   def initialize(args, flag)
     @flag = flag
@@ -12,10 +11,10 @@ class ActionProcessOutboundMessages < ParentAction
       @phase = 'ALL'
       @activation = 'SKIP'
       @payload = 'NULL'
-      super(args[:logger])
     else
       recover_action(self)
     end
+    super(args[:logger])
   end
 
   # Always check for messages

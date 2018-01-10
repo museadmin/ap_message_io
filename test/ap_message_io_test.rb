@@ -4,8 +4,6 @@ require 'eventmachine'
 
 # Minitest unit tests for action pack
 class ApMessageIoTest < MiniTest::Test
-  # Relative path to our actions
-  ACTIONS_DIR = './lib/ap_message_io/actions'.freeze
   # Where it all gets written to
   RESULTS_ROOT = "#{Dir.home}/state_machine_root".freeze
 
@@ -149,15 +147,13 @@ class ApMessageIoTest < MiniTest::Test
   # @param time_out [FixedNum] The time out period
   def wait_for_run_phase(phase, state_machine, time_out)
     EM.run do
-      t = EM::Timer.new(time_out) do
+      EM::Timer.new(time_out) do
         EM.stop
         return false
       end
 
-      p = EM::PeriodicTimer.new(1) do
+      EM::PeriodicTimer.new(1) do
         if state_machine.query_run_phase_state == phase
-          p.cancel
-          t.cancel
           EM.stop
           return true
         end
@@ -167,19 +163,18 @@ class ApMessageIoTest < MiniTest::Test
 
   # Drop a message into the queue with a shutdown flag
   def write_message_file(in_pending, flag)
+    js = build_message(flag)
+    name = JSON.parse(js)['id']
+    File.open("#{in_pending}/#{name}", 'w') { |f| f.write(js) }
+    File.open("#{in_pending}/#{name}.flag", 'w') { |f| f.write('') }
+  end
+
+  def build_message(flag)
     builder = MessageBuilder.new
     builder.sender = 'localhost'
     builder.action = flag
     builder.payload = '{ "test": "value" }'
     builder.direction = 'in'
-    js = builder.build
-
-    File.open("#{in_pending}/#{builder.id}", 'w') do |f|
-      f.write(js)
-    end
-
-    File.open("#{in_pending}/#{builder.id}.flag", 'w') do |f|
-      f.write('')
-    end
+    builder.build
   end
 end
