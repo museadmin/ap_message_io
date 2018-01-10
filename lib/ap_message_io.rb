@@ -5,9 +5,11 @@ require 'state_machine'
 # from messenger gem using .include_module method
 class ApMessageIo
   # Export the actions from this pack into a state machine
-  def export_action_pack(state_machine, dir)
-    path = File.expand_path('../..', __FILE__)
-    state_machine.import_action_pack(path + '/' + dir)
+  def export_action_pack(args)
+    root = File.expand_path('../..', __FILE__)
+    path = root + '/lib/ap_message_io/actions'
+    path = root + '/' + args[:dir] unless args[:dir].nil?
+    args[:state_machine].import_action_pack(path)
   end
 end
 

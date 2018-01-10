@@ -1,6 +1,6 @@
 require 'state/actions/parent_action'
 
-class ActionProcessOutboundMessage < ParentAction
+class ActionProcessOutboundMessages < ParentAction
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
   # run_mode [Symbol] Either NORMAL or RECOVER
@@ -9,8 +9,8 @@ class ActionProcessOutboundMessage < ParentAction
   def initialize(args, flag)
     @flag = flag
     if args[:run_mode] == 'NORMAL'
-      @phase = 'RUNNING'
-      @activation = 'ACT'
+      @phase = 'ALL'
+      @activation = 'SKIP'
       @payload = 'NULL'
       super(args[:logger])
     else
@@ -18,11 +18,10 @@ class ActionProcessOutboundMessage < ParentAction
     end
   end
 
-  # Do the work for this action
+  # Always check for messages
   def execute
     return unless active
-    process_outbound_message
-    # deactivate(@flag)
+    process_outbound_messages
   end
 
   private
@@ -32,7 +31,7 @@ class ActionProcessOutboundMessage < ParentAction
     []
   end
 
-  def process_outbound_message
+  def process_outbound_messages
     execute_sql_query(
       'select id, sender, action, payload, date_time ' +
       'from messages where processed = 0 and direction = \'out\''

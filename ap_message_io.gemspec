@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'bundler', '~> 1.16'
   spec.add_runtime_dependency 'eventmachine', '~> 1.2.5'
   spec.add_runtime_dependency 'json', '~> 2.0.4'
-  spec.add_runtime_dependency 'minitest', '~> 5.0'
+  spec.add_runtime_dependency 'minitest', '~> 5.10.1'
   spec.add_runtime_dependency 'rake', '~> 0'
   spec.add_runtime_dependency 'state-machine', '~> 0.1.4'
   spec.add_runtime_dependency 'yard', '~> 0.9.12'

@@ -35,7 +35,7 @@ class ApMessageIoTest < MiniTest::Test
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
-    ap.export_action_pack(sm, 'lib/ap_message_io/actions')
+    ap.export_action_pack(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -51,7 +51,7 @@ class ApMessageIoTest < MiniTest::Test
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
-    ap.export_action_pack(sm, 'lib/ap_message_io/actions')
+    ap.export_action_pack(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -76,7 +76,7 @@ class ApMessageIoTest < MiniTest::Test
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
-    ap.export_action_pack(sm, 'lib/ap_message_io/actions')
+    ap.export_action_pack(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -98,7 +98,7 @@ class ApMessageIoTest < MiniTest::Test
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
-    ap.export_action_pack(sm, 'lib/ap_message_io/actions')
+    ap.export_action_pack(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -122,8 +122,8 @@ class ApMessageIoTest < MiniTest::Test
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
-    ap.export_action_pack(sm, 'lib/ap_message_io/actions')
-    ap.export_action_pack(sm, 'test/actions')
+    ap.export_action_pack(state_machine: sm)
+    ap.export_action_pack(state_machine: sm, dir: 'test/actions')
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
 

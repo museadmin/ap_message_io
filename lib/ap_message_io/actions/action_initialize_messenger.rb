@@ -28,6 +28,7 @@ class ActionInitializeMessenger < ParentAction
     update_state('INIT_MESSAGING_LOADED', 1)
     @logger.info('Messenger dependencies created Successfully')
     activate(flag: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
+    activate(flag: 'ACTION_PROCESS_OUTBOUND_MESSAGES')
     deactivate(@flag)
   end
 
@@ -42,8 +43,8 @@ class ActionInitializeMessenger < ParentAction
 
   # Create the messages table in the DB
   def create_message_table
-    execute_sql_statement('CREATE TABLE messages (' \
-      '   id CHAR PRIMARY KEY, ' \
+    execute_sql_statement("CREATE TABLE messages (\n" \
+      "   id CHAR PRIMARY KEY, \n" \
       "   sender CHAR NOT NULL, -- Hostname of sender \n" \
       "   action CHAR NOT NULL, -- The action to perform \n" \
       "   payload CHAR, -- Optional payload \n" \
