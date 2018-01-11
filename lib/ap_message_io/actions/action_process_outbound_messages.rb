@@ -1,6 +1,9 @@
 require 'state/actions/parent_action'
 
 class ActionProcessOutboundMessages < ParentAction
+
+  attr_reader :flag
+
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
   # run_mode [Symbol] Either NORMAL or RECOVER

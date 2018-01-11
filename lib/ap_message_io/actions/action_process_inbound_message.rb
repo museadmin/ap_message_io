@@ -2,6 +2,9 @@ require 'state/actions/parent_action'
 
 # Process inbound messages
 class ActionProcessInboundMessage < ParentAction
+
+  attr_reader :flag
+
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
   # run_mode [Symbol] Either NORMAL or RECOVER

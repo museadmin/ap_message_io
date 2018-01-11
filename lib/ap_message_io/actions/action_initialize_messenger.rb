@@ -3,6 +3,9 @@ require 'state/actions/parent_action'
 # Load the properties for the messenger into the control DB
 # and create the in and outbound messaging directories
 class ActionInitializeMessenger < ParentAction
+
+  attr_reader :flag
+
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
   # run_mode [Symbol] Either NORMAL or RECOVER

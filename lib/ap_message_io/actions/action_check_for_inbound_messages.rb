@@ -3,6 +3,9 @@ require 'fileutils'
 
 # Check the inbound directory for new messages
 class ActionCheckForInboundMessages < ParentAction
+
+  attr_reader :flag
+
   # Instantiate the action, args hash contains:
   # run_mode [Symbol] Either NORMAL or RECOVER,
   # logger [Symbol] The logger object for logging.

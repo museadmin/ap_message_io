@@ -30,6 +30,7 @@ class ApMessageIoTest < MiniTest::Test
   # waiting for shutdown.
   def test_message_execution
     sm = StateMachine.new
+    # Instantiate without calling export via init
     ap = ApMessageIo.new
 
     # Export our actions to the state machine
@@ -46,10 +47,7 @@ class ApMessageIoTest < MiniTest::Test
   # and recorded in the state-machine table
   def test_message_payload
     sm = StateMachine.new
-    ap = ApMessageIo.new
-
-    # Export our actions to the state machine
-    ap.export_action_pack(state_machine: sm)
+    ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -71,10 +69,7 @@ class ApMessageIoTest < MiniTest::Test
   # Assert inbound messages are recorded in db
   def test_messaging_table
     sm = StateMachine.new
-    ap = ApMessageIo.new
-
-    # Export our actions to the state machine
-    ap.export_action_pack(state_machine: sm)
+    ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -93,10 +88,7 @@ class ApMessageIoTest < MiniTest::Test
   # that the expected number are found
   def test_message_file_handling
     sm = StateMachine.new
-    ap = ApMessageIo.new
-
-    # Export our actions to the state machine
-    ap.export_action_pack(state_machine: sm)
+    ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -117,10 +109,9 @@ class ApMessageIoTest < MiniTest::Test
   # and written out to file in outbound dir
   def test_process_outbound_message
     sm = StateMachine.new
-    ap = ApMessageIo.new
+    ap = ApMessageIo.new(state_machine: sm)
 
-    # Export our actions to the state machine
-    ap.export_action_pack(state_machine: sm)
+    # Export our unit test actions to the state machine
     ap.export_action_pack(state_machine: sm, dir: 'test/actions')
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
