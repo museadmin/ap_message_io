@@ -21,7 +21,7 @@ class ApMessageIoTest < MiniTest::Test
   # Confirm that SM can load one of our modules
   def test_it_loads_user_modules
     sm = StateMachine.new
-    sm.include_module('TestModule')
+    sm.include_module('ApMessageIoModule')
     assert_equal(sm.test_method, 'Test String')
   end
 

@@ -21,7 +21,7 @@ class ApMessageIo
 end
 
 # Module for unit test
-module TestModule
+module ApMessageIoModule
   # Test method to prove export of module to state machine
   def test_method
     'Test String'
