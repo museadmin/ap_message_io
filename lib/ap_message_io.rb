@@ -20,8 +20,26 @@ class ApMessageIo
   end
 end
 
-# Module for unit test
+# Module contains methods for state machine that help the
+# messaging action pack
 module ApMessageIoModule
+  # Get the runtime messaging directories
+  def in_pending
+    query_property('in_pending')
+  end
+
+  def in_processed
+    query_property('in_processed')
+  end
+
+  def out_pending
+    query_property('out_pending')
+  end
+
+  def out_processed
+    query_property('out_processed')
+  end
+
   # Test method to prove export of module to state machine
   def test_method
     'Test String'

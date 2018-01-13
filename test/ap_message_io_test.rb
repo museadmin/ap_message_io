@@ -30,6 +30,7 @@ class ApMessageIoTest < MiniTest::Test
   # waiting for shutdown.
   def test_message_execution
     sm = StateMachine.new
+    sm.include_module('ApMessageIoModule')
     # Instantiate without calling export via init
     ap = ApMessageIo.new
 
@@ -39,7 +40,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.query_property('in_pending'),'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending,'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
   end
 
@@ -47,12 +48,13 @@ class ApMessageIoTest < MiniTest::Test
   # and recorded in the state-machine table
   def test_message_payload
     sm = StateMachine.new
+    sm.include_module('ApMessageIoModule')
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
     assert(wait_for_run_phase('RUNNING', sm, 10))
-    write_message_file(sm.query_property('in_pending'), 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
     assert(wait_for_run_phase('SHUTDOWN', sm, 10))
 
     # Assert we set the payload in the state-machine table from the message file
@@ -69,12 +71,13 @@ class ApMessageIoTest < MiniTest::Test
   # Assert inbound messages are recorded in db
   def test_messaging_table
     sm = StateMachine.new
+    sm.include_module('ApMessageIoModule')
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.query_property('in_pending'), 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert we have one received message in the dB messages table
@@ -89,19 +92,20 @@ class ApMessageIoTest < MiniTest::Test
   def test_message_file_handling
     sm = StateMachine.new
     ApMessageIo.new(state_machine: sm)
+    sm.include_module('ApMessageIoModule')
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.query_property('in_pending'), 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert message files were move to processed
-    assert(Dir[File.join(sm.query_property('in_processed'), '**', '*')]
+    assert(Dir[File.join(sm.in_processed, '**', '*')]
                .count { |file| File.file?(file) } == 2)
 
     # Assert ack file is present in outbound dir
-    assert(Dir[File.join(sm.query_property('out_pending'), '**', '*')]
+    assert(Dir[File.join(sm.out_pending, '**', '*')]
                .count { |file| File.file?(file) } == 2)
   end
 
@@ -109,6 +113,7 @@ class ApMessageIoTest < MiniTest::Test
   # and written out to file in outbound dir
   def test_process_outbound_message
     sm = StateMachine.new
+    sm.include_module('ApMessageIoModule')
     ap = ApMessageIo.new(state_machine: sm)
 
     # Export our unit test actions to the state machine
@@ -117,15 +122,15 @@ class ApMessageIoTest < MiniTest::Test
     wait_for_run_phase('RUNNING', sm, 10)
 
     # Startup, write a shutdown message and wait for exit
-    write_message_file(sm.query_property('in_pending'), 'ACTION_TEST_ACTION')
+    write_message_file(sm.in_pending, 'ACTION_TEST_ACTION')
 
     sleep(2)
-    write_message_file(sm.query_property('in_pending'), 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Look for our outbound message file
     @found_out = false
-    Dir["#{sm.query_property('out_pending')}/*"].each do |file|
+    Dir["#{sm.out_pending}/*"].each do |file|
       @found_out = true if File.foreach(file).grep(/"action":"THIRD_PARTY_ACTION"/).any?
     end
     assert(@found_out, 'Outbound message file not found')
@@ -160,6 +165,7 @@ class ApMessageIoTest < MiniTest::Test
     File.open("#{in_pending}/#{name}.flag", 'w') { |f| f.write('') }
   end
 
+  # Build a test message
   def build_message(flag)
     builder = MessageBuilder.new
     builder.sender = 'localhost'
