@@ -2,7 +2,7 @@ require 'ap_message_io/version'
 require 'state_machine'
 
 # Modules can be added to state machine and methods called
-# from messenger gem using .include_module method
+# from messenger gem using .include_module('name') method
 class ApMessageIo
   # Relative path to our actions
   ACTIONS_DIR = '/lib/ap_message_io/actions'.freeze
@@ -24,23 +24,23 @@ end
 # messaging action pack
 module ApMessageIoModule
   # Get the runtime messaging directories
-  def in_pending
+  def in_pending_dir
     query_property('in_pending')
   end
 
-  def in_processed
+  def in_processed_dir
     query_property('in_processed')
   end
 
-  def out_pending
+  def out_pending_dir
     query_property('out_pending')
   end
 
-  def out_processed
+  def out_processed_dir
     query_property('out_processed')
   end
 
-  # Test method to prove export of module to state machine
+  # Unit test method to prove export of module to state machine
   def test_method
     'Test String'
   end

@@ -1,8 +1,8 @@
-require "rack"
+require 'rack'
 
 # Taken from https://robots.thoughtbot.com/lets-build-a-sinatra
 module ApiServer
-
+  # Serve up the API endpoints using Sinatra
   class Base
     def initialize
       @routes = {}
@@ -12,30 +12,31 @@ module ApiServer
 
     # Delegated route addition handlers
     def get(path, &handler)
-      route("GET", path, &handler)
+      route('GET', path, &handler)
     end
 
     def post(path, &handler)
-      route("POST", path, &handler)
+      route('POST', path, &handler)
     end
 
     def put(path, &handler)
-      route("PUT", path, &handler)
+      route('PUT', path, &handler)
     end
 
     def patch(path, &handler)
-      route("PATCH", path, &handler)
+      route('PATCH', path, &handler)
     end
 
     def delete(path, &handler)
-      route("DELETE", path, &handler)
+      route('DELETE', path, &handler)
     end
 
     def head(path, &handler)
-      route("HEAD", path, &handler)
+      route('HEAD', path, &handler)
     end
 
-    # Called for every request. Finds the appropriate handler
+    # Called for every request. Finds the appropriate
+    # handler in the routes hash
     def call(env)
       @request = Rack::Request.new(env)
       verb = @request.request_method
@@ -56,7 +57,7 @@ module ApiServer
 
     private
 
-    #Add a route to the routes array
+    #Add a route to the routes hash
     def route(verb, path, &handler)
       @routes[verb] ||= {}
       @routes[verb][path] = handler

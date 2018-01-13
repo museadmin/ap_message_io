@@ -40,7 +40,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending,'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
   end
 
@@ -54,18 +54,20 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     assert(wait_for_run_phase('RUNNING', sm, 10))
-    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
     assert(wait_for_run_phase('SHUTDOWN', sm, 10))
 
     # Assert we set the payload in the state-machine table from the message file
-    assert(sm.execute_sql_query('select payload from state_machine' \
-                                ' where flag = \'SYS_NORMAL_SHUTDOWN\';')[0][0] ==
-             '{ "test": "value" }')
+    assert(sm.execute_sql_query(
+      'select payload from state_machine' \
+      ' where flag = \'SYS_NORMAL_SHUTDOWN\';'
+    )[0][0] == '{ "test": "value" }')
 
     # Assert the payload is written into the messages table
-    assert(sm.execute_sql_query('select payload from messages ' \
-                                'where action = \'SYS_NORMAL_SHUTDOWN\';')[0][0] ==
-             '{ "test": "value" }')
+    assert(sm.execute_sql_query(
+      'select payload from messages ' \
+      'where action = \'SYS_NORMAL_SHUTDOWN\';'
+    )[0][0] == '{ "test": "value" }')
   end
 
   # Assert inbound messages are recorded in db
@@ -77,14 +79,14 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert we have one received message in the dB messages table
     # and an ack
     assert(sm.execute_sql_query(
-        'select count(*) id from messages;')[0][0] == 2
-    )
+      'select count(*) id from messages;'
+    )[0][0] == 2)
   end
 
   # Assert the message files are moved to processed and
@@ -97,15 +99,15 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert message files were move to processed
-    assert(Dir[File.join(sm.in_processed, '**', '*')]
+    assert(Dir[File.join(sm.in_processed_dir, '**', '*')]
                .count { |file| File.file?(file) } == 2)
 
     # Assert ack file is present in outbound dir
-    assert(Dir[File.join(sm.out_pending, '**', '*')]
+    assert(Dir[File.join(sm.out_pending_dir, '**', '*')]
                .count { |file| File.file?(file) } == 2)
   end
 
@@ -116,24 +118,43 @@ class ApMessageIoTest < MiniTest::Test
     sm.include_module('ApMessageIoModule')
     ap = ApMessageIo.new(state_machine: sm)
 
-    # Export our unit test actions to the state machine
+    # Export our unit test actions to the state machine and begin
+    # executing
     ap.export_action_pack(state_machine: sm, dir: 'test/actions')
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
 
-    # Startup, write a shutdown message and wait for exit
-    write_message_file(sm.in_pending, 'ACTION_TEST_ACTION')
-
-    sleep(2)
-    write_message_file(sm.in_pending, 'SYS_NORMAL_SHUTDOWN')
+    # Trigger a test action that writes an out bound msg
+    write_message_file(sm.in_pending_dir, 'ACTION_TEST_ACTION')
+    assert(wait_for_outbound_message('THIRD_PARTY_ACTION', sm, 10))
+    # Then write a shutdown message and wait for exit
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
+  end
 
-    # Look for our outbound message file
-    @found_out = false
-    Dir["#{sm.out_pending}/*"].each do |file|
-      @found_out = true if File.foreach(file).grep(/"action":"THIRD_PARTY_ACTION"/).any?
+  # Wait for a change of run phase in the state machine.
+  # Raise error if timeout.
+  # @param action [String] Action flag to wait for
+  # @param time_out [FixedNum] The time out period
+  def wait_for_outbound_message(action, sm, time_out)
+    EM.run do
+      EM::Timer.new(time_out) do
+        EM.stop
+        return false
+      end
+
+      EM::PeriodicTimer.new(1) do
+        Dir["#{sm.out_pending_dir}/*"].each do |file|
+          if File
+             .foreach(file)
+             .grep(/#{action}/)
+             .any?
+            EM.stop
+            return true
+          end
+        end
+      end
     end
-    assert(@found_out, 'Outbound message file not found')
   end
 
   # Wait for a change of run phase in the state machine.
