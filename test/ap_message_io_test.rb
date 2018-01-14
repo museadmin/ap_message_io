@@ -30,12 +30,7 @@ class ApMessageIoTest < MiniTest::Test
   # waiting for shutdown.
   def test_message_execution
     sm = StateMachine.new
-    sm.include_module('ApMessageIoModule')
-    # Instantiate without calling export via init
-    ap = ApMessageIo.new
-
-    # Export our actions to the state machine
-    ap.export_action_pack(state_machine: sm)
+    ApMessageIo.new(state_machine: sm)
     sm.execute
 
     # Startup, write a shutdown message and wait for exit
@@ -48,7 +43,6 @@ class ApMessageIoTest < MiniTest::Test
   # and recorded in the state-machine table
   def test_message_payload
     sm = StateMachine.new
-    sm.include_module('ApMessageIoModule')
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
@@ -73,7 +67,6 @@ class ApMessageIoTest < MiniTest::Test
   # Assert inbound messages are recorded in db
   def test_messaging_table
     sm = StateMachine.new
-    sm.include_module('ApMessageIoModule')
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
@@ -132,6 +125,22 @@ class ApMessageIoTest < MiniTest::Test
     wait_for_run_phase('SHUTDOWN', sm, 10)
   end
 
+  # Test the Api Server
+  def test_webrick_api_server
+    sm = StateMachine.new
+    ApMessageIo.new(state_machine: sm)
+    sm.execute
+    # TODO Api can now ref sm so add some useful endpoints and tests
+    # inbound msg
+    # query of properties
+    sm.start_api_server
+    sleep(5)
+    sm.stop_api_server
+    # Then write a shutdown message and wait for exit
+    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    wait_for_run_phase('SHUTDOWN', sm, 10)
+  end
+
   # Wait for a change of run phase in the state machine.
   # Raise error if timeout.
   # @param action [String] Action flag to wait for
@@ -178,7 +187,7 @@ class ApMessageIoTest < MiniTest::Test
     end
   end
 
-  # Drop a message into the queue with a shutdown flag
+  # Drop a message into the queue with an action flag
   def write_message_file(in_pending, flag)
     js = build_message(flag)
     name = JSON.parse(js)['id']

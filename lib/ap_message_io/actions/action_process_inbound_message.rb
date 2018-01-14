@@ -39,6 +39,7 @@ class ActionProcessInboundMessage < ParentAction
 
   # Find each unprocessed message in the DB and process it
   # Setting each one's action and optional payload
+  # TODO: This assumes that the message is always to activate...
   def process_messages
     execute_sql_query(
       'select * from messages where processed = 0 and direction = \'in\';'
