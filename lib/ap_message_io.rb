@@ -1,13 +1,15 @@
-require 'ap_message_io/version'
-require 'state_machine'
+
 require_relative 'ap_message_io/api/api_server'
+require 'ap_message_io/helpers/message_builder'
+require 'ap_message_io/version'
+require 'rack'
+require 'state_machine'
 
 # Modules can be added to state machine and methods called
 # from messenger gem using .include_module('name') method
 class ApMessageIo
   # Relative path to our actions
   ACTIONS_DIR = '/lib/ap_message_io/actions'.freeze
-
   def initialize(args)
     export_action_pack(args)
     args[:state_machine].include_module('ApMessageIoModule')
@@ -27,15 +29,29 @@ end
 # Should be able to read ok though, as sqlite3 supports concurrent reads
 # State Machine is referenced via the constant: ApiServer::Base::SM
 module ApiRoutes
-  get "/" do
-    ApiServer::Base::SM.query_property('out_processed')
+  get '/properties' do
+    ApiServer::Base::SM.properties
   end
+end
+
+module Logging
+  # Fatal log level which indicates a server crash
+  FATAL = 1
+  # Error log level which indicates a recoverable error
+  ERROR = 2
+  # Warning log level which indicates a possible problem
+  WARN  = 3
+  # Information log level which indicates possibly useful information
+  INFO  = 4
+  # Debugging error level for messages used in server development or
+  # debugging
+  DEBUG = 5
 end
 
 # Module contains methods for state machine that help the
 # messaging action pack
 module ApMessageIoModule
-
+  include Logging
   # Return the pending inbound messaging directory
   def in_pending_dir
     query_property('in_pending')
@@ -53,8 +69,17 @@ module ApMessageIoModule
     query_property('out_processed')
   end
 
+  # Service api route '/properties'
+  def properties
+    execute_sql_query(
+      "select property, value from properties order by property asc;"
+    ).to_json
+  end
+
   # Start the API Server in a Background thread
-  def start_api_server
+  def start_api_server(**args)
+    port = args.fetch(:port, 4567)
+    log_level = args.fetch(:log_level, Logging::ERROR)
     # Add a state_machine reference to the Api server so it can
     # access the SM's methods etc.
     ApiServer::Base.const_set('SM', self)
@@ -63,8 +88,8 @@ module ApMessageIoModule
     @msg_api_server = Thread.new do
       Rack::Handler::WEBrick.run(
         ApiServer::Application,
-        Port: 4567,
-        Logger: WEBrick::Log::new($stderr, WEBrick::Log::ERROR)
+        Port: port,
+        Logger: WEBrick::Log::new($stderr, log_level)
       )
     end
   end
@@ -74,6 +99,26 @@ module ApMessageIoModule
     Rack::Handler::WEBrick.shutdown
     sleep(2)
     Thread.kill(@msg_api_server)
+  end
+
+  # Drop an action message into the queue with an action flag
+  # TODO: Add ACT or SKIP to message, default to ACT in builder
+  def write_message_file(flag)
+    in_pending = in_pending_dir
+    js = build_message(flag)
+    name = JSON.parse(js)['id']
+    File.open("#{in_pending}/#{name}", 'w') { |f| f.write(js) }
+    File.open("#{in_pending}/#{name}.flag", 'w') { |f| f.write('') }
+  end
+
+  # Build a test message
+  def build_message(flag)
+    builder = MessageBuilder.new
+    builder.sender = 'localhost'
+    builder.action = flag
+    builder.payload = '{ "test": "value" }'
+    builder.direction = 'in'
+    builder.build
   end
 
   # Unit test method to prove export of module to state machine

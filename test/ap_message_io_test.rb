@@ -1,16 +1,18 @@
 require 'test_helper'
-require 'ap_message_io/helpers/message_builder'
 require 'eventmachine'
+
+require_relative '../lib/ap_message_io'
 
 # Minitest unit tests for action pack
 class ApMessageIoTest < MiniTest::Test
+  include Logging
   # Where it all gets written to
   RESULTS_ROOT = "#{Dir.home}/state_machine_root".freeze
 
   # Disable this if debugging a failure...
   def teardown
-    return unless File.directory?(RESULTS_ROOT)
-    FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
+    # return unless File.directory?(RESULTS_ROOT)
+    # FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
   end
 
   # Test we remembered to include a gem version
@@ -35,7 +37,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
   end
 
@@ -48,7 +50,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     assert(wait_for_run_phase('RUNNING', sm, 10))
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
     assert(wait_for_run_phase('SHUTDOWN', sm, 10))
 
     # Assert we set the payload in the state-machine table from the message file
@@ -72,7 +74,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert we have one received message in the dB messages table
@@ -92,7 +94,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
 
     # Assert message files were move to processed
@@ -118,10 +120,10 @@ class ApMessageIoTest < MiniTest::Test
     wait_for_run_phase('RUNNING', sm, 10)
 
     # Trigger a test action that writes an out bound msg
-    write_message_file(sm.in_pending_dir, 'ACTION_TEST_ACTION')
+    sm.write_message_file('ACTION_TEST_ACTION')
     assert(wait_for_outbound_message('THIRD_PARTY_ACTION', sm, 10))
     # Then write a shutdown message and wait for exit
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
     wait_for_run_phase('SHUTDOWN', sm, 10)
   end
 
@@ -130,15 +132,16 @@ class ApMessageIoTest < MiniTest::Test
     sm = StateMachine.new
     ApMessageIo.new(state_machine: sm)
     sm.execute
+
     # TODO Api can now ref sm so add some useful endpoints and tests
-    # inbound msg
-    # query of properties
-    sm.start_api_server
-    sleep(5)
+    # inbound msg TODO: http client to hit api from test
+    # query of properties DONE
+    sm.start_api_server(log_lvel: ERROR)
+    sleep(15)
     sm.stop_api_server
     # Then write a shutdown message and wait for exit
-    write_message_file(sm.in_pending_dir, 'SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    sm.write_message_file('SYS_NORMAL_SHUTDOWN')
+    assert(wait_for_run_phase('SHUTDOWN', sm, 10))
   end
 
   # Wait for a change of run phase in the state machine.
@@ -185,23 +188,5 @@ class ApMessageIoTest < MiniTest::Test
         end
       end
     end
-  end
-
-  # Drop a message into the queue with an action flag
-  def write_message_file(in_pending, flag)
-    js = build_message(flag)
-    name = JSON.parse(js)['id']
-    File.open("#{in_pending}/#{name}", 'w') { |f| f.write(js) }
-    File.open("#{in_pending}/#{name}.flag", 'w') { |f| f.write('') }
-  end
-
-  # Build a test message
-  def build_message(flag)
-    builder = MessageBuilder.new
-    builder.sender = 'localhost'
-    builder.action = flag
-    builder.payload = '{ "test": "value" }'
-    builder.direction = 'in'
-    builder.build
   end
 end
