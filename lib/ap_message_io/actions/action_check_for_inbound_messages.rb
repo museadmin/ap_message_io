@@ -14,7 +14,7 @@ class ActionCheckForInboundMessages < ParentAction
     @flag = flag
     if args[:run_mode] == 'NORMAL'
       @phase = 'RUNNING'
-      @activation = 'SKIP'
+      @activation = SKIP
       @payload = 'NULL'
     else
       recover_action(self)

@@ -12,7 +12,7 @@ class ActionProcessOutboundMessages < ParentAction
     @flag = flag
     if args[:run_mode] == 'NORMAL'
       @phase = 'ALL'
-      @activation = 'SKIP'
+      @activation = SKIP
       @payload = 'NULL'
     else
       recover_action(self)

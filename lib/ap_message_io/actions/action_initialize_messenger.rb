@@ -14,7 +14,7 @@ class ActionInitializeMessenger < ParentAction
     @flag = flag
     if args[:run_mode] == 'NORMAL'
       @phase = 'STARTUP'
-      @activation = 'ACT'
+      @activation = ACT
       @payload = 'NULL'
     else
       recover_action(self)
