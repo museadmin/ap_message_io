@@ -2,8 +2,10 @@
 require_relative 'ap_message_io/api/api_server'
 require 'ap_message_io/helpers/message_builder'
 require 'ap_message_io/version'
+require 'json'
 require 'rack'
 require 'state_machine'
+# require 'ap_message_io/resources/constants'
 
 # Modules can be added to state machine and methods called
 # from messenger gem using .include_module('name') method
@@ -30,7 +32,12 @@ end
 # State Machine is referenced via the constant: ApiServer::Base::SM
 module ApiRoutes
   get '/properties' do
-    ApiServer::Base::SM.properties
+    [200, {}, [ApiServer::Base::SM.properties]]
+    # ApiServer::Base::SM.properties
+  end
+  post '/message' do
+    ApiServer::Base::SM.message(JSON.parse(request.body.read))
+    [201,  {}, ['{ "status": "Message Received" }']]
   end
 end
 
@@ -76,13 +83,21 @@ module ApMessageIoModule
     ).to_json
   end
 
+  # Server API route '/message'
+  def message(params)
+    js = JSON.generate(params)
+    write_message_to_file(js)
+  end
+
   # Start the API Server in a Background thread
   def start_api_server(**args)
     port = args.fetch(:port, 4567)
     log_level = args.fetch(:log_level, Logging::ERROR)
+
     # Add a state_machine reference to the Api server so it can
-    # access the SM's methods etc.
-    ApiServer::Base.const_set('SM', self)
+    # access the SM's methods etc. if not already defined
+    ApiServer::Base.const_set('SM', self) if (defined? ApiServer::Base::SM).nil?
+
     # Now run the server under WEBrick in a BG thread
     Thread::abort_on_exception
     @msg_api_server = Thread.new do
@@ -103,20 +118,25 @@ module ApMessageIoModule
 
   # Drop an action message into the queue with an action flag
   # TODO: Add ACT or SKIP to message, default to ACT in builder
-  def write_message_file(flag)
-    in_pending = in_pending_dir
+  def create_action_message(flag)
     js = build_message(flag)
+    write_message_to_file(js)
+  end
+
+  # Write the message to file
+  def write_message_to_file(js)
+    in_pending = in_pending_dir
     name = JSON.parse(js)['id']
     File.open("#{in_pending}/#{name}", 'w') { |f| f.write(js) }
     File.open("#{in_pending}/#{name}.flag", 'w') { |f| f.write('') }
   end
 
   # Build a test message
-  def build_message(flag)
+  def build_message(flag, payload = nil)
     builder = MessageBuilder.new
     builder.sender = 'localhost'
     builder.action = flag
-    builder.payload = '{ "test": "value" }'
+    builder.payload = payload.nil? ? '{ "test": "value" }' : payload
     builder.direction = 'in'
     builder.build
   end
