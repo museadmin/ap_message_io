@@ -16,7 +16,7 @@ class ApMessageIoTest < MiniTest::Test
   BASE_PORT = '4567'
 
   # Teardown the control directories after a test
-  TEARDOWN = false
+  TEARDOWN = true
   def teardown
     return unless TEARDOWN && File.directory?(RESULTS_ROOT)
     FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
@@ -141,7 +141,7 @@ class ApMessageIoTest < MiniTest::Test
     sm = StateMachine.new
     ApMessageIo.new(state_machine: sm)
 
-    # Start the APPI server and wait for SM to catch up
+    # Start the API server and wait for SM to catch up
     sm.start_api_server(log_level: ERROR)
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)

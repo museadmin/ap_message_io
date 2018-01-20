@@ -26,7 +26,7 @@ class ActionInitializeMessenger < ParentAction
     return unless active
     create_dirs
     create_message_table
-    update_state('INIT_MESSAGING_LOADED', 1)
+    update_state('BEFORE_MESSAGING_LOADED', 1)
     @logger.info('Messenger dependencies created Successfully')
     activate(action: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
     activate(action: 'ACTION_PROCESS_OUTBOUND_MESSAGES')
@@ -38,7 +38,7 @@ class ActionInitializeMessenger < ParentAction
   # States for this action
   def states
     [
-      ['0', 'INIT_MESSAGING_LOADED', 'Properties have been loaded into DB']
+      ['0', 'BEFORE_MESSAGING_LOADED', 'Properties have been loaded into DB']
     ]
   end
 
