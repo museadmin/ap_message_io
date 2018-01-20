@@ -4,14 +4,13 @@ require 'state/actions/parent_action'
 # and create the in and outbound messaging directories
 class ActionInitializeMessenger < ParentAction
 
-  attr_reader :flag
+  attr_reader :action
 
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
-  # run_mode [Symbol] Either NORMAL or RECOVER
-  # logger [Symbol] The logger object for logging
-  def initialize(args, flag)
-    @flag = flag
+  # @action [String] Name of action
+  def initialize(args, action)
+    @action = action
     if args[:run_mode] == 'NORMAL'
       @phase = 'STARTUP'
       @activation = ACT
@@ -29,9 +28,9 @@ class ActionInitializeMessenger < ParentAction
     create_message_table
     update_state('INIT_MESSAGING_LOADED', 1)
     @logger.info('Messenger dependencies created Successfully')
-    activate(flag: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
-    activate(flag: 'ACTION_PROCESS_OUTBOUND_MESSAGES')
-    deactivate(@flag)
+    activate(action: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
+    activate(action: 'ACTION_PROCESS_OUTBOUND_MESSAGES')
+    deactivate(@action)
   end
 
   private

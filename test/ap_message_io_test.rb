@@ -45,7 +45,7 @@ class ApMessageIoTest < MiniTest::Test
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    wait_for_run_phase('STOPPED', sm, 10)
   end
 
   # Assert that a payload is picked up from a message file
@@ -58,12 +58,12 @@ class ApMessageIoTest < MiniTest::Test
     # Startup, write a shutdown message and wait for exit
     assert(wait_for_run_phase('RUNNING', sm, 10))
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    assert(wait_for_run_phase('SHUTDOWN', sm, 10))
+    assert(wait_for_run_phase('STOPPED', sm, 10))
 
     # Assert we set the payload in the state-machine table from the message file
     assert(sm.execute_sql_query(
       'select payload from state_machine' \
-      ' where flag = \'SYS_NORMAL_SHUTDOWN\';'
+      ' where action = \'SYS_NORMAL_SHUTDOWN\';'
     )[0][0] == '{ "test": "value" }')
 
     # Assert the payload is written into the messages table
@@ -82,7 +82,7 @@ class ApMessageIoTest < MiniTest::Test
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    wait_for_run_phase('STOPPED', sm, 10)
 
     # Assert we have one received message in the dB messages table
     # and an ack
@@ -102,7 +102,7 @@ class ApMessageIoTest < MiniTest::Test
     # Startup, write a shutdown message and wait for exit
     wait_for_run_phase('RUNNING', sm, 10)
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    wait_for_run_phase('STOPPED', sm, 10)
 
     # Assert message files were move to processed
     assert(Dir[File.join(sm.in_processed_dir, '**', '*')]
@@ -132,7 +132,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Then write a shutdown message and wait for exit
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    wait_for_run_phase('STOPPED', sm, 10)
   end
 
   # Test the post message endpoint
@@ -150,7 +150,7 @@ class ApMessageIoTest < MiniTest::Test
     post_to_endpoint(end_point: '/message',
                      body: MSG_TEMPLATE.to_json,
                      header: ACCEPT)
-    assert(wait_for_run_phase('SHUTDOWN', sm, 10))
+    assert(wait_for_run_phase('STOPPED', sm, 10))
     sm.stop_api_server
   end
 
@@ -175,7 +175,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Then write a shutdown message and wait for exit
     sm.create_action_message('SYS_NORMAL_SHUTDOWN')
-    wait_for_run_phase('SHUTDOWN', sm, 10)
+    wait_for_run_phase('STOPPED', sm, 10)
     sm.stop_api_server
   end
 
@@ -210,7 +210,7 @@ class ApMessageIoTest < MiniTest::Test
 
   # Wait for a change of run phase in the state machine.
   # Raise error if timeout.
-  # @param action [String] Action flag to wait for
+  # @param action [String] Action to wait for
   # @param time_out [FixedNum] The time out period
   def wait_for_outbound_message(action, sm, time_out)
     EM.run do

@@ -3,14 +3,13 @@ require 'state/actions/parent_action'
 # A test Action
 class ActionTestAction < ParentAction
 
-  attr_reader :flag
+  attr_reader :action
 
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
-  # run_mode [Symbol] Either NORMAL or RECOVER
-  # logger [Symbol] The logger object for logging
-  def initialize(args, flag)
-    @flag = flag
+  # @action [String] Name of action
+  def initialize(args, action)
+    @action = action
     if args[:run_mode] == 'NORMAL'
       @phase = 'RUNNING'
       @activation = SKIP
@@ -33,7 +32,7 @@ class ActionTestAction < ParentAction
     builder.build
 
     inject_outbound_message(builder)
-    deactivate(@flag)
+    deactivate(@action)
   end
 
   private

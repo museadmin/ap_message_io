@@ -116,10 +116,10 @@ module ApMessageIoModule
     # Thread.kill(@msg_api_server)
   end
 
-  # Drop an action message into the queue with an action flag
+  # Drop an action message into the queue with an action action
   # TODO: Add ACT or SKIP to message builder, default to ACT in builder
-  def create_action_message(flag)
-    js = build_message(flag)
+  def create_action_message(action)
+    js = build_message(action)
     write_message_to_file(js)
   end
 
@@ -132,10 +132,10 @@ module ApMessageIoModule
   end
 
   # Build a test message
-  def build_message(flag, payload = nil)
+  def build_message(action, payload = nil)
     builder = MessageBuilder.new
     builder.sender = 'localhost'
-    builder.action = flag
+    builder.action = action
     builder.activation = 1
     builder.payload = payload.nil? ? '{ "test": "value" }' : payload
     builder.direction = 'in'

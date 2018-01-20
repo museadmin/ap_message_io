@@ -69,8 +69,8 @@ class MessageBuilder
     @message[:sender] = hostname
   end
 
-  # Set the action flag
-  # @param action [String] Flag for action
+  # Set the action action
+  # @param action [String] Name for action
   def action=(action)
     @message[:action] = action
   end
@@ -93,7 +93,7 @@ class MessageBuilder
 
   # Ack is set true in recipient when ack is sent
   def ack=(ack)
-    raise 'Invalid ack flag. true or false expected' unless
+    raise 'Invalid ack status. true or false expected' unless
       [true, false].include? ack
     @message[:ack] = ack
   end

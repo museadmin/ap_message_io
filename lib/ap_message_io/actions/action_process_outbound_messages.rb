@@ -2,14 +2,13 @@ require 'state/actions/parent_action'
 
 class ActionProcessOutboundMessages < ParentAction
 
-  attr_reader :flag
+  attr_reader :action
 
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
-  # run_mode [Symbol] Either NORMAL or RECOVER
-  # logger [Symbol] The logger object for logging
-  def initialize(args, flag)
-    @flag = flag
+  # @action [String] Name of action
+  def initialize(args, action)
+    @action = action
     if args[:run_mode] == 'NORMAL'
       @phase = 'ALL'
       @activation = SKIP

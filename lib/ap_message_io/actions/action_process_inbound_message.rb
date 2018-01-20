@@ -3,14 +3,13 @@ require 'state/actions/parent_action'
 # Process inbound messages
 class ActionProcessInboundMessage < ParentAction
 
-  attr_reader :flag
+  attr_reader :action
 
   # Instantiate the action
   # @param args [Hash] Required parameters for the action
-  # run_mode [Symbol] Either NORMAL or RECOVER
-  # logger [Symbol] The logger object for logging
-  def initialize(args, flag)
-    @flag = flag
+  # @action [String] Name of action
+  def initialize(args, action)
+    @action = action
     if args[:run_mode] == 'NORMAL'
       @phase = 'RUNNING'
       @activation = SKIP
@@ -26,8 +25,8 @@ class ActionProcessInboundMessage < ParentAction
     return unless active
     process_messages
     update_state('UNREAD_MESSAGES', 0)
-    deactivate(@flag)
-    activate(flag: 'ACTION_SEND_ACK')
+    deactivate(@action)
+    activate(action: 'ACTION_SEND_ACK')
   end
 
   private
@@ -50,7 +49,7 @@ class ActionProcessInboundMessage < ParentAction
         'update messages set processed = \'1\' ' \
         "where id = '#{msg[MSG_ID]}';"
       )
-      activate(payload: msg[MSG_PAYLOAD], flag: msg[MSG_ACTION])
+      activate(payload: msg[MSG_PAYLOAD], action: msg[MSG_ACTION])
     end
   end
 end

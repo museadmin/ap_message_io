@@ -4,14 +4,12 @@ require 'fileutils'
 # Check the inbound directory for new messages
 class ActionCheckForInboundMessages < ParentAction
 
-  attr_reader :flag
+  attr_reader :action
 
-  # Instantiate the action, args hash contains:
-  # run_mode [Symbol] Either NORMAL or RECOVER,
-  # logger [Symbol] The logger object for logging.
-  # @param args [Hash] Required parameters for the action
-  def initialize(args, flag)
-    @flag = flag
+  # Instantiate the action, args hash
+  # @action [String] Name of action
+  def initialize(args, action)
+    @action = action
     if args[:run_mode] == 'NORMAL'
       @phase = 'RUNNING'
       @activation = SKIP
@@ -26,11 +24,11 @@ class ActionCheckForInboundMessages < ParentAction
   def execute
     return unless active
     in_pending = query_property('in_pending')
-    Dir["#{in_pending}/*.flag"].each do |flag_file|
-      insert_message(flag_file)
-      move_message_to_processed(flag_file)
+    Dir["#{in_pending}/*.flag"].each do |action_file|
+      insert_message(action_file)
+      move_message_to_processed(action_file)
       update_state('UNREAD_MESSAGES', 1)
-      activate(flag: 'ACTION_PROCESS_INBOUND_MESSAGE')
+      activate(action: 'ACTION_PROCESS_INBOUND_MESSAGE')
     end
   end
 
@@ -44,9 +42,9 @@ class ActionCheckForInboundMessages < ParentAction
   end
 
   # Found a message so insert it into the DB
-  # @param flag_file [String] Path to the semaphore file
-  def insert_message(flag_file)
-    msg_file = "#{File.dirname(flag_file)}/#{File.basename(flag_file, '.*')}"
+  # @param action_file [String] Path to the semaphore file
+  def insert_message(action_file)
+    msg_file = "#{File.dirname(action_file)}/#{File.basename(action_file, '.*')}"
     msg = JSON.parse(File.read(msg_file))
 
     execute_sql_statement("insert into messages \n" \
@@ -59,17 +57,17 @@ class ActionCheckForInboundMessages < ParentAction
 
   # After the message has been inserted into the DB
   # move it to processed dir
-  # @param flag_file [String] Path to the semaphore file
-  def move_message_to_processed(flag_file)
+  # @param action_file [String] Path to the semaphore file
+  def move_message_to_processed(action_file)
     # Move the data file first
-    source = "#{File.dirname(flag_file)}/#{File.basename(flag_file, '.*')}"
+    source = "#{File.dirname(action_file)}/#{File.basename(action_file, '.*')}"
     target = "#{query_property(
       'in_processed'
-    )}/#{File.basename(flag_file, '.*')}"
+    )}/#{File.basename(action_file, '.*')}"
     FileUtils.move source, target
     # Then the semaphore
-    source = flag_file
-    target = "#{query_property('in_processed')}/#{File.basename(flag_file)}"
+    source = action_file
+    target = "#{query_property('in_processed')}/#{File.basename(action_file)}"
     FileUtils.move source, target
   end
 end
