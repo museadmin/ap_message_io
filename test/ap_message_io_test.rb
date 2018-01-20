@@ -15,10 +15,11 @@ class ApMessageIoTest < MiniTest::Test
   BASE_URL = 'http://localhost'
   BASE_PORT = '4567'
 
-  # Disable this if debugging a failure...
+  # Teardown the control directories after a test
+  TEARDOWN = false
   def teardown
-    # return unless File.directory?(RESULTS_ROOT)
-    # FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
+    return unless TEARDOWN && File.directory?(RESULTS_ROOT)
+    FileUtils.rm_rf("#{RESULTS_ROOT}/.", secure: true)
   end
 
   # Test we remembered to include a gem version
@@ -141,7 +142,7 @@ class ApMessageIoTest < MiniTest::Test
     ApMessageIo.new(state_machine: sm)
 
     # Start the APPI server and wait for SM to catch up
-    sm.start_api_server(log_lvel: ERROR)
+    sm.start_api_server(log_level: ERROR)
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
 
@@ -159,8 +160,8 @@ class ApMessageIoTest < MiniTest::Test
     sm = StateMachine.new
     ApMessageIo.new(state_machine: sm)
 
-    # Start the APPI server and wait for SM to catch up
-    sm.start_api_server(log_lvel: ERROR)
+    # Start the API server and wait for SM to catch up
+    sm.start_api_server(log_level: ERROR)
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
 

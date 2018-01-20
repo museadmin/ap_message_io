@@ -49,6 +49,7 @@ class ActionInitializeMessenger < ParentAction
       "   id CHAR PRIMARY KEY, \n" \
       "   sender CHAR NOT NULL, -- Hostname of sender \n" \
       "   action CHAR NOT NULL, -- The action to perform \n" \
+      "   activation CHAR DEFAULT 0, -- Act on or Skip the action \n" \
       "   payload CHAR, -- Optional payload \n" \
       "   ack INTEGER DEFAULT 0, -- ack sent \n" \
       "   date_time CHAR NOT NULL, -- Time sent \n" \

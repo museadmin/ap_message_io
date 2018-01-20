@@ -112,12 +112,12 @@ module ApMessageIoModule
   # Stop the Api Server
   def stop_api_server
     Rack::Handler::WEBrick.shutdown
-    sleep(2)
-    Thread.kill(@msg_api_server)
+    # sleep(2)
+    # Thread.kill(@msg_api_server)
   end
 
   # Drop an action message into the queue with an action flag
-  # TODO: Add ACT or SKIP to message, default to ACT in builder
+  # TODO: Add ACT or SKIP to message builder, default to ACT in builder
   def create_action_message(flag)
     js = build_message(flag)
     write_message_to_file(js)
@@ -136,6 +136,7 @@ module ApMessageIoModule
     builder = MessageBuilder.new
     builder.sender = 'localhost'
     builder.action = flag
+    builder.activation = 1
     builder.payload = payload.nil? ? '{ "test": "value" }' : payload
     builder.direction = 'in'
     builder.build

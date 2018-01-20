@@ -9,7 +9,7 @@ class MessageBuilder
       sender: nil,
       action: nil,
       payload: nil,
-      # ack: true,
+      activation: 1,
       direction: 'in',
       date_time: nil
     }
@@ -26,6 +26,11 @@ class MessageBuilder
   # Return the message id
   def id
     @message[:id]
+  end
+
+  # Return the activation level
+  def activation
+    @message[:activation]
   end
 
   # Return the sender
@@ -68,6 +73,12 @@ class MessageBuilder
   # @param action [String] Flag for action
   def action=(action)
     @message[:action] = action
+  end
+
+  # Set the activation
+  # @param activation [Integer] 1 = active 0 = skip
+  def activation=(activation)
+    @message[:activation] = activation
   end
 
   # Optional payload for action being activated

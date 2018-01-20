@@ -42,13 +42,15 @@ class ActionProcessInboundMessage < ParentAction
   # TODO: This assumes that the message is always to activate...
   def process_messages
     execute_sql_query(
-      'select * from messages where processed = 0 and direction = \'in\';'
+      "select id, sender, action, activation, \n" \
+      "payload, ack, date_time, direction, processed \n" \
+      "from messages where processed = 0 and direction = 'in';"
     ).each do |msg|
       execute_sql_statement(
         'update messages set processed = \'1\' ' \
-        "where id = '#{msg[0]}';"
+        "where id = '#{msg[MSG_ID]}';"
       )
-      activate(payload: msg[3], flag: msg[2])
+      activate(payload: msg[MSG_PAYLOAD], flag: msg[MSG_ACTION])
     end
   end
 end
