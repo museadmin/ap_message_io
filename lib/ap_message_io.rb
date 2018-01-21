@@ -117,7 +117,6 @@ module ApMessageIoModule
   end
 
   # Drop an action message into the queue with an action action
-  # TODO: Add ACT or SKIP to message builder, default to ACT in builder
   def create_action_message(action)
     js = build_message(action)
     write_message_to_file(js)

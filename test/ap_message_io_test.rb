@@ -29,7 +29,7 @@ class ApMessageIoTest < MiniTest::Test
 
   # Confirm that SM can load one of our modules
   def test_it_loads_user_modules
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     sm.include_module('ApMessageIoModule')
     assert_equal(sm.test_method, 'Test String')
   end
@@ -38,7 +38,7 @@ class ApMessageIoTest < MiniTest::Test
   # for the SYS_NORMAL_SHUTDOWN action. Fail if we timeout
   # waiting for shutdown.
   def test_message_execution
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
@@ -51,7 +51,7 @@ class ApMessageIoTest < MiniTest::Test
   # Assert that a payload is picked up from a message file
   # and recorded in the state-machine table
   def test_message_payload
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
@@ -75,7 +75,7 @@ class ApMessageIoTest < MiniTest::Test
 
   # Assert inbound messages are recorded in db
   def test_messaging_table
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
     sm.execute
 
@@ -94,7 +94,7 @@ class ApMessageIoTest < MiniTest::Test
   # Assert the message files are moved to processed and
   # that the expected number are found
   def test_message_file_handling
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
     sm.include_module('ApMessageIoModule')
     sm.execute
@@ -116,7 +116,7 @@ class ApMessageIoTest < MiniTest::Test
   # Test that an outbound message is found in db
   # and written out to file in outbound dir
   def test_process_outbound_message
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     sm.include_module('ApMessageIoModule')
     ap = ApMessageIo.new(state_machine: sm)
 
@@ -138,7 +138,7 @@ class ApMessageIoTest < MiniTest::Test
   # Test the post message endpoint
   def test_post_message
     # Kick off state_machine
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
 
     # Start the API server and wait for SM to catch up
@@ -157,7 +157,7 @@ class ApMessageIoTest < MiniTest::Test
   # Test a get against the properties endpoint
   def test_get_properties
     # Kick off state_machine
-    sm = StateMachine.new
+    sm = StateMachine.new(log_level: Logger::DEBUG)
     ApMessageIo.new(state_machine: sm)
 
     # Start the API server and wait for SM to catch up

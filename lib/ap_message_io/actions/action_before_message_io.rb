@@ -2,7 +2,7 @@ require 'state/actions/parent_action'
 
 # Load the properties for the messenger into the control DB
 # and create the in and outbound messaging directories
-class ActionInitializeMessenger < ParentAction
+class ActionBeforeMessageIo < ParentAction
 
   attr_reader :action
 
@@ -26,7 +26,7 @@ class ActionInitializeMessenger < ParentAction
     return unless active
     create_dirs
     create_message_table
-    update_state('BEFORE_MESSAGING_LOADED', 1)
+    update_state('ACTION_BEFORE_MESSAGE_IO', COMPLETE)
     @logger.info('Messenger dependencies created Successfully')
     activate(action: 'ACTION_CHECK_FOR_INBOUND_MESSAGES')
     activate(action: 'ACTION_PROCESS_OUTBOUND_MESSAGES')
@@ -35,10 +35,12 @@ class ActionInitializeMessenger < ParentAction
 
   private
 
-  # States for this action
+  # States for this action. Before hook ensures we are not ready
+  # to run until this is set to complete. Hook name should =
+  # action name.
   def states
     [
-      ['0', 'BEFORE_MESSAGING_LOADED', 'Properties have been loaded into DB']
+      ['0', 'ACTION_BEFORE_MESSAGE_IO', 'Properties have been loaded into DB']
     ]
   end
 
