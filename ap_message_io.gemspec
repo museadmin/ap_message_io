@@ -41,7 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'rake', '~> 0'
   spec.add_runtime_dependency 'rack', '~> 2.0.0'
   spec.add_runtime_dependency 'sinatra', '~> 2.0.0'
-  spec.add_runtime_dependency 'state-machine', '~> 0.1.4'
+  spec.add_runtime_dependency 'state-machine', '~> 0.1.5'
   spec.add_runtime_dependency 'thin'
   spec.add_runtime_dependency 'yard', '~> 0.9.12'
 end

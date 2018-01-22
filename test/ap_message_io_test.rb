@@ -246,9 +246,12 @@ class ApMessageIoTest < MiniTest::Test
       end
 
       EM::PeriodicTimer.new(1) do
-        if state_machine.query_run_phase_state == phase
-          EM.stop
-          return true
+        begin
+          if state_machine.query_run_phase_state == phase
+            EM.stop
+            return true
+          end
+        rescue SQLite3::Exception
         end
       end
     end

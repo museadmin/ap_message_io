@@ -116,7 +116,7 @@ module ApMessageIoModule
     # Thread.kill(@msg_api_server)
   end
 
-  # Drop an action message into the queue with an action action
+  # Drop an action message into the queue with an ACT action
   def create_action_message(action)
     js = build_message(action)
     write_message_to_file(js)
