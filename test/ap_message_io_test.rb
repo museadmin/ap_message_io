@@ -61,15 +61,17 @@ class ApMessageIoTest < MiniTest::Test
     assert(wait_for_run_phase('STOPPED', sm, 10))
 
     # Assert we set the payload in the state-machine table from the message file
-    assert(sm.execute_sql_query(
-      'select payload from state_machine' \
-      ' where action = \'SYS_NORMAL_SHUTDOWN\';'
+    assert(sm.execute_sql_query( <<-EOF
+        select payload from state_machine
+         where action = 'SYS_NORMAL_SHUTDOWN';
+      EOF
     )[0][0] == '{ "test": "value" }')
 
     # Assert the payload is written into the messages table
-    assert(sm.execute_sql_query(
-      'select payload from messages ' \
-      'where action = \'SYS_NORMAL_SHUTDOWN\';'
+    assert(sm.execute_sql_query( <<-EOF
+        select payload from messages
+         where action = 'SYS_NORMAL_SHUTDOWN';
+      EOF
     )[0][0] == '{ "test": "value" }')
   end
 
@@ -122,7 +124,7 @@ class ApMessageIoTest < MiniTest::Test
 
     # Export our unit test actions to the state machine and begin
     # executing
-    ap.export_action_pack(state_machine: sm, dir: 'test/actions')
+    ap.export_action_pack({state_machine: sm, dir: 'test/actions'}, 'ap_message_io')
     sm.execute
     wait_for_run_phase('RUNNING', sm, 10)
 

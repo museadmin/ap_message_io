@@ -10,19 +10,21 @@ require 'state_machine'
 # Modules can be added to state machine and methods called
 # from messenger gem using .include_module('name') method
 class ApMessageIo
+  NAME = 'ap_message_io'
   # Relative path to our actions
   ACTIONS_DIR = '/lib/ap_message_io/actions'.freeze
   def initialize(args)
-    export_action_pack(args)
+    export_action_pack(args, NAME)
     args[:state_machine].include_module('ApMessageIoModule')
   end
 
   # Export the actions from this pack into a state machine
-  def export_action_pack(args)
+  def export_action_pack(args, name)
     root = File.expand_path('../..', __FILE__)
     path = root + ACTIONS_DIR
+    # Has the user passed in an alternative dir for action pack?
     path = root + '/' + args[:dir] unless args[:dir].nil?
-    args[:state_machine].import_action_pack(path)
+    args[:state_machine].import_action_pack(path: path, name: name)
   end
 end
 
